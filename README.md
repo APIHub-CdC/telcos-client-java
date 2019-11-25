@@ -1,6 +1,6 @@
 # telcos-client-java
 
-Permite registrar las cuentas nuevas de una persona física.
+Presenta los creditos de la persona con servicios con domicilio asociado de: telefonía celular; televisión de paga; y, telefonía local y de larga distancia.
 
 ## Requisitos
 
