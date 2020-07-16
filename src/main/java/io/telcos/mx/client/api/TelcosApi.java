@@ -21,12 +21,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class TelecosApi {
+public class TelcosApi {
     private ApiClient apiClient;
-    public TelecosApi() {
+    public TelcosApi() {
         this(Configuration.getDefaultApiClient());
     }
-    public TelecosApi(ApiClient apiClient) {
+    public TelcosApi(ApiClient apiClient) {
         this.apiClient = apiClient;
     }
     public ApiClient getApiClient() {
