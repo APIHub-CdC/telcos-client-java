@@ -1,6 +1,6 @@
 # telcos-client-java
 
-Presenta los creditos de la persona con servicios con domicilio asociado de: telefonía celular; televisión de paga; y, telefonía local y de larga distancia.
+Muestra los domicilios asociados a los crédito telcos de la persona (telefonía celular; televisión de paga; y telefonía local y de larga distancia).
 
 ## Requisitos
 
@@ -10,20 +10,15 @@ Presenta los creditos de la persona con servicios con domicilio asociado de: tel
 ## Instalación
 
 Para la instalación de las dependencias se deberá ejecutar el siguiente comando:
-
 ```shell
 mvn install -Dmaven.test.skip=true
 ```
-
-> **NOTA:** Este fragmento del comando *-Dmaven.test.skip=true* evitará que se lance la prueba unitaria.
-
-
 ## Guía de inicio
 
 ### Paso 1. Generar llave y certificado
 
 Antes de lanzar la prueba se deberá tener un keystore para la llave privada y el certificado asociado a ésta.
-Para generar el keystore se ejecutan las instrucciones que se encuentran en ***src/main/security/createKeystore.sh*** ó con los siguientes comandos:
+Para generar el keystore se ejecutan las instrucciones que se encuentran en ***src/main/security/createKeystore.sh*** o con los siguientes comandos:
 
 **Opcional**: Si desea cifrar su contenedor, coloque una contraseña en una variable de ambiente.
 
@@ -105,6 +100,7 @@ keytool -list -keystore ${KEYSTORE_FILE} \
 ```
 
 ### Paso 2. Carga del certificado dentro del portal de desarrolladores
+
  1. Iniciar sesión.
  2. Dar clic en la sección "**Mis aplicaciones**".
  3. Seleccionar la aplicación.
@@ -112,12 +108,13 @@ keytool -list -keystore ${KEYSTORE_FILE} \
     <p align="center">
       <img src="https://github.com/APIHub-CdC/imagenes-cdc/blob/master/applications.png">
     </p>
- 5. Al abrirse la ventana emergente, seleccionar el certificado previamente creado y dar clic en el botón "**Cargar**":
+ 5. Al abrirse la ventana, seleccionar el certificado previamente creado y dar clic en el botón "**Cargar**":
     <p align="center">
-      <img src="https://github.com/APIHub-CdC/imagenes-cdc/blob/master/upload_cert.png" width="268">
+      <img src="https://github.com/APIHub-CdC/imagenes-cdc/blob/master/upload_cert.png">
     </p>
 
 ### Paso 3. Descarga del certificado de Círculo de Crédito dentro del portal de desarrolladores
+
  1. Iniciar sesión.
  2. Dar clic en la sección "**Mis aplicaciones**".
  3. Seleccionar la aplicación.
@@ -125,15 +122,14 @@ keytool -list -keystore ${KEYSTORE_FILE} \
     <p align="center">
         <img src="https://github.com/APIHub-CdC/imagenes-cdc/blob/master/applications.png">
     </p>
- 5. Al abrirse la ventana emergente, dar clic al botón "**Descargar**":
+ 5. Al abrirse la ventana, dar clic al botón "**Descargar**":
     <p align="center">
-        <img src="https://github.com/APIHub-CdC/imagenes-cdc/blob/master/download_cert.png" width="268">
+        <img src="https://github.com/APIHub-CdC/imagenes-cdc/blob/master/download_cert.png">
     </p>
 
 ### Paso 4. Modificar archivo de configuraciones
 
 Para hacer uso del certificado que se descargó y el keystore que se creó se deberán modificar las rutas que se encuentran en ***src/main/resources/config.properties***
-
 ```properties
 keystore_file=your_path_for_your_keystore/keystore.jks
 cdc_cert_file=your_path_for_certificate_of_cdc/cdc_cert.pem
@@ -141,84 +137,73 @@ keystore_password=your_super_secure_keystore_password
 key_alias=cdc
 key_password=your_super_secure_password
 ```
+### Paso 5. Modificar URL y datos de petición
 
-### Paso 5. Capturar los datos de la petición
+En el archivo **ApiTest**, que se encuentra en ***src/test/java/io/telcos/mx/client/api/***. Se deberá modificar los datos de la petición y de la URL para el consumo de la API en ***setBasePath("the_url")***, como se muestra en el siguiente fragmento de código con los datos correspondientes:
 
-En el archivo **TelecosSimulacionApiTest**, que se encuentra en ***src/test/java/io/telcos/client/api/***. Se deberá modificar los datos de la petición y de la URL para el consumo de la API en ***setBasePath("the_url")***, como se muestra en el siguiente fragmento de código con los datos correspondientes:
+> **NOTA:** Los datos de la siguiente petición son solo representativos.
 
 ```java
-private Logger logger = LoggerFactory.getLogger(TelecosSimulacionApiTest.class.getName());
+private Logger logger = LoggerFactory.getLogger(ApiTest.class.getName());
 
-private final TelecosSimulacionApi api = new TelecosSimulacionApi();
+private final TelcosApi api = new TelecosApi();
 private final SignerInterceptor interceptor = new SignerInterceptor();
 private ApiClient apiClient = null;
 
+private String xApiKey = "your_api_key";
+private String username = "your_username";
+private String password = "your_password";  
+    
 @Before()
 public void setUp() {
-	
-	this.apiClient = api.getApiClient();
+    this.apiClient = api.getApiClient();
     this.apiClient.setBasePath("the_url");
-	OkHttpClient insecureClient = ApiClient.getClientNoSSLVerification();
-	OkHttpClient okHttpClient = insecureClient.newBuilder()
-			.readTimeout(60, TimeUnit.SECONDS)
-			.addInterceptor(interceptor)
-			.build();
-	apiClient.setHttpClient(okHttpClient);
+    OkHttpClient okHttpClient = new OkHttpClient().newBuilder()
+            .readTimeout(30, TimeUnit.SECONDS)
+            .addInterceptor(new SignerInterceptor())
+            .build();
+    apiClient.setHttpClient(okHttpClient);
 }
 
 @Test
 public void getReporteTest() throws ApiException {
-	String xApiKey = "your_api_key";
-	String username = "your_username";
-	String password = "your_password";
 
     DomicilioPeticion domicilio = new DomicilioPeticion();
-    domicilio.setDireccion(null);
-    domicilio.setColonia(null);
-    domicilio.setMunicipio(null);
-    domicilio.setCiudad(null);
     domicilio.setEstado(CatalogoEstados.CDMX);
-    domicilio.setCodigoPostal(null);
-    domicilio.setFechaResidencia(null);
-    domicilio.setNumeroTelefono(null);
     domicilio.setTipoDomicilio(CatalogoTipoDomicilio.C);
     domicilio.setTipoAsentamiento(CatalogoTipoAsentamiento._1);
     
     PersonaPeticion persona = new PersonaPeticion();
     persona.setPrimerNombre("NOMBRE");
     persona.setSegundoNombre(null);
-    persona.setApellidoPaterno("APELLIDO");
+    persona.setApellidoPaterno("PATERNO");
     persona.setApellidoMaterno("MATERNO");
     persona.setApellidoAdicional(null);
-    persona.setFechaNacimiento("31-12-1985");
-    persona.setRfc(null);
-    persona.setCurp(null);
-    persona.setNumeroSeguridadSocial(null);
-    persona.setNacionalidad("");
-    persona.setResidencia(CatalogoResidencia._1);
+    persona.setFechaNacimiento("1986-06-27");
+    persona.setResidencia(CatalogoResidencia.NUMBER_1);
     persona.setEstadoCivil(CatalogoEstadoCivil.D);
     persona.setSexo(CatalogoSexo.M);
-    persona.setClaveElector("");
-    persona.setNumeroDependientes("");
-    persona.setFechaDefuncion("");
     persona.setDomicilio(domicilio);
     
-	try {
-        Respuesta response = api.getReporte(xApiKey, username, password, persona);
+    Peticion peticion = new Peticion();
+    peticion.setFolioOtorgante("1234");
+    peticion.setPersona(persona);
+    
+    try {
+        Respuesta response = api.getReporte(xApiKey, username, password, peticion);
         logger.info(response.toString());
         Assert.assertTrue(response != null);
-	} catch (ApiException e) {
-		Errores errores = interceptor.getErrores();
-		logger.info(errores.getErrores().get(0).toString());
-	}
+    } catch (ApiException e) {
+        Errores errores = interceptor.getErrores();
+        logger.info(errores.toString());
+    }
 }
 
 ```
 
-### Paso 7. Ejecutar la prueba unitaria
+### Paso 6. Ejecutar la prueba unitaria
 
 Teniendo los pasos anteriores ya solo falta ejecutar la prueba unitaria, con el siguiente comando:
-
 ```shell
 mvn test -Dmaven.install.skip=true
 ```
